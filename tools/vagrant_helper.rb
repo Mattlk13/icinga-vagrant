@@ -6,6 +6,7 @@ raise "VAGRANT_HOME needs to be defined prior vagrant_helper!" unless defined? V
 VAGRANTFILE_API_VERSION = "2" unless defined? VAGRANTFILE_API_VERSION
 VAGRANT_REQUIRED_VERSION = "1.8.0" unless defined? VAGRANT_REQUIRED_VERSION
 VAGRANT_REQUIRED_LINKED_CLONE_VERSION = "1.8.4" unless defined? VAGRANT_REQUIRED_LINKED_CLONE_VERSION
+VAGRANT_REQUIRED_QEMU_USE_SESSION_VERSION = "2.2.0" unless defined? VAGRANT_REQUIRED_QEMU_USE_SESSION_VERSION
 
 # Require 1.6.5 at least
 if ! defined? Vagrant.require_version
@@ -104,6 +105,15 @@ def provider_libvirt(node_config, name, options)
     override.vm.box = options[:box_libvirt]
     lv.memory = options[:memory] if options[:memory]
     lv.cpus = options[:cpus] if options[:cpus]
+    lv.qemu_use_session = false if Gem::Version.new(Vagrant::VERSION) >= Gem::Version.new(VAGRANT_REQUIRED_QEMU_USE_SESSION_VERSION)
+  end
+end
+
+def provider_hyperv(node_config, name, options)
+  node_config.vm.provider :hyperv do |hv, override|
+    override.vm.box = options[:box_hyperv]
+    hv.memory = options[:memory] if options[:memory]
+    hv.cpus = options[:cpus] if options[:cpus]
   end
 end
 
@@ -170,4 +180,14 @@ def provision_post(node_config, name, options)
     echo "Finished installing the Vagrant box '#{name}'."
     echo "Navigate to http://#{options[:hostonly]}"
   SHELL
+end
+
+def config_hostmanager(config)
+      return unless Vagrant.has_plugin?('vagrant-hostmanager')
+
+      config.hostmanager.enabled = true
+      config.hostmanager.manage_host = true
+      config.hostmanager.manage_guest = false
+      config.hostmanager.ignore_private_ip = false
+      config.hostmanager.include_offline = true
 end

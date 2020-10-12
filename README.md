@@ -55,13 +55,9 @@ development, so screenshots and features may change.
 
 <img src="https://github.com/Icinga/icinga-vagrant/blob/master/doc/screenshot/vagrant_elastic_kibana_icingabeat.png" alt="Elastic Stack and Icingabeat" height="300">
 
+<img src="https://github.com/Icinga/icinga-vagrant/blob/master/doc/screenshot/vagrant_graylog_icinga.png" alt="Graylog" height="300">
+
 <img src="https://github.com/Icinga/icinga-vagrant/blob/master/doc/screenshot/vagrant_icingaweb2_elasticsearch.png" alt="Icinga Web 2 Elasticsearch" height="300">
-
-<!--
-<img src="https://github.com/Icinga/icinga-vagrant/blob/master/doc/screenshot/vagrant_graylog_icinga2.png" alt="Graylog" height="300">
-
-<img src="https://github.com/Icinga/icinga-vagrant/blob/master/doc/screenshot/vagrant_icingaweb2_graylog.png" alt="Icinga Web 2 Graylog" height="300">
--->
 
 ## Certificates <a id="about-certs"></a>
 
@@ -119,6 +115,10 @@ The required resources are automatically configured during the
 >
 > OpenStack VMs are provisioned remotely in your cloud provider.
 > Please continue [here](doc/25-Openstack.md) for a full documentation.
+
+Optional:
+
+* [vagrant-hostmanager](https://github.com/devopsgroup-io/vagrant-hostmanager) >= 1.8.1
 
 ## Linux <a id="requirements-linux"></a>
 
@@ -405,6 +405,7 @@ nodes = {
   'icinga2' => {
     :box_virtualbox => 'bento/centos-7.4',
     :box_parallels  => 'bento/centos-7.4',
+    :box_hyperv     => 'bento/centos-7.4',
     :box_libvirt    => 'centos/7',
     :net            => 'demo.local',
     :hostonly       => '192.168.33.5',
@@ -423,6 +424,9 @@ nodes = {
   }
 }
 ```
+
+If the `vagrant-hostmanager` plugin is installed an entry in `/etc/hosts` will be created to provide
+access by name.
 
 ## Configuration: Icinga Package Repository <a id="configuration-icinga-repo"></a>
 
@@ -569,7 +573,8 @@ Thanks to all [contributors](AUTHORS)! :)
 Each box uses a generic Vagrantfile to set the required resources for initial VM
 startup. The `Vagrantfile` includes the `Vagrantfile.nodes` file which defines
 VM specific settings. In addition to that, `tools/vagrant_helper.rb` loads all
-pre-defined functions for provider and provisioner instantiation.
+pre-defined functions for provider and provisioner instantiation. Furthermore it
+configures `vagrant-hostmanager` if the plugin is installed.
 
 The generic `shell_provisioner.sh` scripts ensure that all VM requirements are fulfilled
 and also takes care about installing Puppet which will be used as provisioner in the next
@@ -647,6 +652,8 @@ General:
   puppet-datacat           | Type for ES      | .puppet/modules/datacat           | https://github.com/richardc/puppet-datacat.git
   puppet-inifile           | >= 4.7.0         | .puppet/modules/inifile           | https://github.com/puppetlabs/puppetlabs-inifile.git
   puppet-timezone          | >= 4.0.0         | .puppet/modules/timezone          | https://github.com/saz/puppet-timezone.git
+  puppet-snmp              | >= 5.5.8 < 7.0.0 | .puppet/modules/snmp              | https://github.com/voxpupuli/puppet-snmp.git
+  puppet-systemd           | >= 4.10 < 7.0.0  | .puppet/modules/systemd           | https://github.com/camptocamp/puppet-systemd.git
 
 Specific projects:
 
@@ -661,7 +668,7 @@ Specific projects:
   puppet-logstash          | >= 4.6.1         | .puppet/modules/logstash          | https://github.com/elastic/puppet-logstash.git
   puppet-kibana            | >= 4.5.0         | .puppet/modules/kibana            | https://github.com/elastic/puppet-kibana.git
   puppet-filebeat          | >= 4.0.0         | .puppet/modules/filebeat          | https://github.com/pcfens/puppet-filebeat.git
-  puppetlabs-mongodb       | >= 4.7.1         | .puppet/modules/mongodb           | https://github.com/puppetlabs/puppetlabs-mongodb.git
+  puppet-mongodb           | >= 5.5.8 < 7.0.0 | .puppet/modules/mongodb           | https://github.com/voxpupuli/puppet-mongodb.git
   golja-influxdb           | >= 3.0.0 < 5.0.0 | .puppet/modules/influxdb          | https://github.com/n1tr0g/golja-influxdb.git
   puppet-graphite          | >= 3.0.0 < 5.0.0 | .puppet/modules/graphite          | https://github.com/echocat/puppet-graphite.git
   puppet-grafana           | >= 4.7.1         | .puppet/modules/grafana           | https://github.com/voxpupuli/puppet-grafana.git

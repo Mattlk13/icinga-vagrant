@@ -4,6 +4,7 @@ class profiles::icinga::icingaweb2 (
   $api_password = 'icinga',
   $ipl_version = lookup('icinga::ipl::version'),
   $reactbundle_version = lookup('icinga::reactbundle::version'),
+  $incubator_version = lookup('icinga::incubator::version'),
   $pdfexport_version = lookup('icinga::pdfexport::version'),
   $reporting_version = lookup('icinga::reporting::version'),
   $idoreports_version = lookup('icinga::idoreports::version'),
@@ -46,21 +47,21 @@ class profiles::icinga::icingaweb2 (
 
   file { '/usr/local/bin/php':
     ensure => link,
-    target => '/opt/rh/rh-php71/root/usr/bin/php',
+    target => '/opt/rh/rh-php73/root/usr/bin/php',
   } -> Class['php::composer::auto_update']
 
   package { [ 'scl-utils', 'centos-release-scl' ]:
     ensure => present,
   }->
   # Workaround for PHP module not allowing to configure log path
-  file { [ '/var/opt', '/var/opt/rh', '/var/opt/rh/rh-php71' ]:
+  file { [ '/var/opt', '/var/opt/rh', '/var/opt/rh/rh-php73' ]:
     ensure => directory,
     owner  => 'root',
     group  => 'root',
     mode   => '0750'
   }
   ->
-  file { [ '/var/opt/rh/rh-php71/log', '/var/opt/rh/rh-php71/log/php-fpm' ]:
+  file { [ '/var/opt/rh/rh-php73/log', '/var/opt/rh/rh-php73/log/php-fpm' ]:
     ensure => directory,
     owner  => 'apache',
     group  => 'apache',
@@ -69,27 +70,27 @@ class profiles::icinga::icingaweb2 (
   ->
   file { '/var/log/php-fpm':
     ensure => link,
-    source => '/var/opt/rh/rh-php71/log/php-fpm'
+    source => '/var/opt/rh/rh-php73/log/php-fpm'
   }
   ->
   class { '::php::globals':
-    config_root   => '/etc/opt/rh/rh-php71',
-    fpm_pid_file  => '/var/opt/rh/rh-php71/run/php-fpm/php-fpm.pid',
+    config_root   => '/etc/opt/rh/rh-php73',
+    fpm_pid_file  => '/var/opt/rh/rh-php73/run/php-fpm/php-fpm.pid',
   }->
   class { '::php':
-    package_prefix => 'rh-php71-php-', # most important
-    config_root_ini => '/etc/opt/rh/rh-php71',
-    config_root_inifile => '/etc/opt/rh/rh-php71/php.ini',
+    package_prefix => 'rh-php73-php-', # most important
+    config_root_ini => '/etc/opt/rh/rh-php73',
+    config_root_inifile => '/etc/opt/rh/rh-php73/php.ini',
 
     manage_repos => false,
     fpm => true,
-    fpm_package        => 'rh-php71-php-fpm',
-    fpm_service_name   => 'rh-php71-php-fpm',
+    fpm_package        => 'rh-php73-php-fpm',
+    fpm_service_name   => 'rh-php73-php-fpm',
     fpm_service_enable => true,
     fpm_service_ensure => 'running',
-    fpm_inifile        => '/etc/opt/rh/rh-php71/php-fpm.ini',
-    #fpm_error_log      => '/var/opt/rh/rh-php71/log/php-fpm',
-    fpm_user           => 'apache', # rh-php71 prefers apache
+    fpm_inifile        => '/etc/opt/rh/rh-php73/php-fpm.ini',
+    #fpm_error_log      => '/var/opt/rh/rh-php73/log/php-fpm',
+    fpm_user           => 'apache', # rh-php73 prefers apache
     fpm_group          => 'apache',
     dev => true,
     composer => true,
@@ -102,6 +103,7 @@ class profiles::icinga::icingaweb2 (
     extensions => {
       pdo => {},
       mysqlnd => {},
+      process => {}, #required by director
       gmp => {}, #required by x509
     },
     # NOTE for future reference: DO NOT build imagick with PECL. That fails heavily, either with pear not in PATH and then configure & make on missing imagick-devel packages.
@@ -194,6 +196,16 @@ class profiles::icinga::icingaweb2 (
     install_method => 'git',
     git_repository => 'https://github.com/Icinga/icingaweb2-module-ipl.git',
     git_revision   => $ipl_version
+  }->
+  icingaweb2::module { 'incubator':
+    install_method => 'git',
+    git_repository => 'https://github.com/Icinga/icingaweb2-module-incubator.git',
+    git_revision   => $incubator_version
+  }->
+  icingaweb2::module { 'reactbundle':
+    install_method => 'git',
+    git_repository => 'https://github.com/Icinga/icingaweb2-module-reactbundle.git',
+    git_revision   => $reactbundle_version
   }
 
   # Make reporting a first class citizen
@@ -209,11 +221,6 @@ class profiles::icinga::icingaweb2 (
       }
     }
   }
-  icingaweb2::module { 'reactbundle':
-    install_method => 'git',
-    git_repository => 'https://github.com/Icinga/icingaweb2-module-reactbundle.git',
-    git_revision   => $reactbundle_version
-  }->
   icingaweb2::module { 'pdfexport':
     install_method => 'git',
     git_repository => 'https://github.com/Icinga/icingaweb2-module-pdfexport.git',
@@ -285,6 +292,27 @@ class profiles::icinga::icingaweb2 (
     api_username  => $api_username,
     api_password  => $api_password,
     require       => Mysql::Db['director']
+  }
+  ->
+  user { 'icingadirector':
+    ensure => 'present',
+    managehome => false, # the directory needs specific permissions
+    shell => '/bin/false',
+    home => '/var/lib/icingadirector',
+    groups => [ 'icingaweb2' ]
+  }
+  ->
+  file { '/var/lib/icingadirector':
+    ensure => 'directory',
+    mode   => '0750',
+    owner  => 'icingadirector',
+    group  => 'icingaweb2'
+  }
+  ->
+  systemd::unit_file { 'icinga-director.service':
+    source => '/usr/share/icingaweb2/modules/director/contrib/systemd/icinga-director.service',
+    active => true,
+    enable => true,
   }
 
   ##########################################################

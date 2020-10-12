@@ -22,13 +22,15 @@ class profiles::icinga::icinga2 (
      password => 'icingaweb2apitransport',
      permissions => [ "status/query", "actions/*", "objects/modify/*", "objects/query/*" ]
     }
-  }
+  },
+  $graylog_listen_ip = lookup('graylog::web::listen_ip'),
+  $graylog_listen_port = lookup('graylog::web::listen_port') # use a local variable here for the config, erb templates don't like hiera much
 ){
   # Always initialize the main features required
   $basic_features = [ 'checker', 'notification', 'mainlog' ]
 
   # Allow to add more packages
-  $real_packages = [ 'nagios-plugins-all', 'vim-icinga2', 'icinga2-debuginfo' ] + $packages
+  $real_packages = [ 'vim-icinga2', 'icinga2-debuginfo' ] + $packages
 
   # standalone environments need a local configuration
   if (!$zone_name) {
@@ -50,12 +52,8 @@ class profiles::icinga::icinga2 (
     ensure => 'latest',
   }
   ->
-  file { 'check_mysql_health':
-    name => '/usr/lib64/nagios/plugins/check_mysql_health',
-    owner => root,
-    group => root,
-    mode => '0755',
-    content => template("profiles/icinga/check_mysql_health.erb")
+  class { '::profiles::icinga::plugins':
+
   }
 
   mysql::db { 'icinga':
@@ -265,6 +263,18 @@ class profiles::icinga::icinga2 (
   file { "$config_path/bp.conf":
     ensure  => present,
     content => template("profiles/icinga/icinga2/config/demo/bp.conf.erb"),
+    tag     => icinga2::config::file
+  }
+  ->
+  file { "$config_path/network.conf":
+    ensure  => present,
+    content => template("profiles/icinga/icinga2/config/demo/network.conf.erb"),
+    tag     => icinga2::config::file
+  }
+  ->
+  file { "$config_path/health.conf":
+    ensure  => present,
+    content => template("profiles/icinga/icinga2/config/demo/health.conf.erb"),
     tag     => icinga2::config::file
   }
   ->

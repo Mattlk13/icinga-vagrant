@@ -31,7 +31,12 @@ class profiles::base::system (
   }
   ->
   # Base packages
-  package { [ 'mailx', 'tree', 'gdb', 'git', 'bash-completion', 'screen', 'htop', 'unzip' ]:
+  package { [ 'mailx', 'tree', 'gdb', 'lsof', 'git', 'bash-completion', 'screen', 'htop', 'unzip' ]:
+    ensure => 'installed',
+  }
+  ->
+  # Python
+  package { [ 'python36', 'python36-requests' ]:
     ensure => 'installed',
   }
   ->
@@ -66,6 +71,11 @@ class profiles::base::system (
   # vim is needed
   class { 'vim':
     opt_bg_shading => 'light',
+  }
+  # snmp
+  class { 'snmp':
+    agentaddress => [ 'udp:161', 'udp6:161' ],
+    ro_community => 'public'
   }
   ->
   # Greet with fancy Icinga logo

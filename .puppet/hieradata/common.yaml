@@ -33,24 +33,31 @@ icinga::repo::type:                     "snapshot" # you can use 'release' too
 #icinga::repo::type:                     "release"
 
 # Versions
-grafana::version:                       "6.0.1"
+grafana::version:                       "6.5.0"
 graphite::version:                      "1.1.5"
-icinga::ipl::version:                   "v0.2.1"
-icinga::reactbundle::version:           "v0.5.1"
+
+icinga::ipl::version:                   "v0.4.0"
+icinga::reactbundle::version:           "v0.7.0"
+icinga::incubator::version:             "v0.5.0"
 icinga::pdfexport::version:             "v0.9.1"
-icinga::director::version:              "v1.6.2"
+
+icinga::director::version:              "v1.7.2"
 icinga::reporting::version:             "v0.9.1"
 icinga::idoreports::version:            "v0.9.1"
 icinga::x509::version:                  "v1.0.0"
 
-elastic::repo::version:                 6
-elastic::elasticsearch::version:        "6.6.2"
-elastic::kibana::version:               "6.6.2-1" # revision is important
-elastic::icingabeat::version:           "6.5.4"
+elastic::repo::version:                 7
+elastic::elasticsearch::version:        "7.4.2"
+elastic::kibana::version:               "7.4.2-1" # revision is important
+elastic::icingabeat::version:           "7.4.2"
 # keep this in sync with the icingabeat dashboard ids!
 elastic::kibana::default_app_id:        "dashboard/a13f1a80-e4cf-11e7-b4d1-8383451ae5a4"
 
-graylog::repo::version:                 "2.4"
-graylog::elasticsearch::repo_version:   5
-graylog::elasticsearch::version:        "5.6.10"
+graylog::repo::version:                 "3.1"
+graylog::server::version:               "3.1.3"
+graylog::elasticsearch::repo_version:   6
+graylog::elasticsearch::version:        "6.8.5"
+graylog::mongodb::version:              "4.0.0"
+graylog::web::content_pack_id:          "9031558d-2431-4d30-af33-44ab0bc5f109"
+graylog::web::content_pack_rev:         "1"
 
